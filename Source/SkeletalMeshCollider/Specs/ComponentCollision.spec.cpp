@@ -225,6 +225,66 @@ void FComponentSweepSpec::Define()
 							}
 							catch (...) {}
 						});
+
+					It("USkeletalMeshComponent (box at origin, scaled ref pose) Sweep hits the floor from above", [this]()
+						{
+							try {
+								const FVector SweepStart = FVector{ 0, 0, 1000.f };
+								const FVector SweepEnd = FVector{ 0, 0, -1000.f };
+								const float CubeHalfZExtent = 200.f;
+
+								UWorld* World = CreateWorld();
+								TEST_NOT_NULL_THROW(World);
+								UBoxComponent* FloorPlaneCollider = CreateFloor(World);
+								TEST_NOT_NULL_THROW(FloorPlaneCollider);
+
+								auto ActorClass = ::LoadClass<ASkeletalMeshActor>(nullptr, TEXT("Blueprint'/Game/ComponentCollision/Cube-ScaledRefPose/BP_Cube-ScaledRefPose.BP_Cube-ScaledRefPose_C'"));
+								TEST_NOT_NULL_THROW(ActorClass);
+								auto Actor = World->SpawnActor<ASkeletalMeshActor>(ActorClass);
+								TEST_NOT_NULL_THROW(Actor);
+								auto Component = Cast<USkeletalMeshComponent>(Actor->GetComponentByClass(USkeletalMeshComponent::StaticClass()));
+								TEST_NOT_NULL_THROW(Component);
+
+								TArray<FHitResult> OutHits;
+								FComponentQueryParams Params;
+								Params.AddIgnoredActor(Component->GetOwner());
+								bool HitFound = World->ComponentSweepMulti(OutHits, Component, SweepStart, SweepEnd, FQuat(EForceInit::ForceInit), Params);
+								TEST_TRUE_THROW(HitFound);
+								TEST_EQUAL_TOLERANCE_THROW(OutHits[0].ImpactPoint.Z, FloorPlaneCollider->GetComponentLocation().Z + FloorPlaneCollider->GetScaledBoxExtent().Z, 0.1f);
+								TEST_EQUAL_TOLERANCE_THROW(OutHits[0].Distance, SweepStart.Z - (FloorPlaneCollider->GetComponentLocation().Z + FloorPlaneCollider->GetScaledBoxExtent().Z) - CubeHalfZExtent, 0.1f);
+							}
+							catch (...) {}
+						});
+
+					It("USkeletalMeshComponent (box at origin, scaled and rotated ref pose) Sweep hits the floor from above", [this]()
+						{
+							try {
+								const FVector SweepStart = FVector{ 0, 0, 1000.f };
+								const FVector SweepEnd = FVector{ 0, 0, -1000.f };
+								const float CubeHalfZExtent = 200.f;
+
+								UWorld* World = CreateWorld();
+								TEST_NOT_NULL_THROW(World);
+								UBoxComponent* FloorPlaneCollider = CreateFloor(World);
+								TEST_NOT_NULL_THROW(FloorPlaneCollider);
+
+								auto ActorClass = ::LoadClass<ASkeletalMeshActor>(nullptr, TEXT("Blueprint'/Game/ComponentCollision/Cube-ScaledAndRotatedRefPose/BP_Cube-ScaledAndRotatedRefPose.BP_Cube-ScaledAndRotatedRefPose_C'"));
+								TEST_NOT_NULL_THROW(ActorClass);
+								auto Actor = World->SpawnActor<ASkeletalMeshActor>(ActorClass);
+								TEST_NOT_NULL_THROW(Actor);
+								auto Component = Cast<USkeletalMeshComponent>(Actor->GetComponentByClass(USkeletalMeshComponent::StaticClass()));
+								TEST_NOT_NULL_THROW(Component);
+
+								TArray<FHitResult> OutHits;
+								FComponentQueryParams Params;
+								Params.AddIgnoredActor(Component->GetOwner());
+								bool HitFound = World->ComponentSweepMulti(OutHits, Component, SweepStart, SweepEnd, FQuat(EForceInit::ForceInit), Params);
+								TEST_TRUE_THROW(HitFound);
+								TEST_EQUAL_TOLERANCE_THROW(OutHits[0].ImpactPoint.Z, FloorPlaneCollider->GetComponentLocation().Z + FloorPlaneCollider->GetScaledBoxExtent().Z, 0.1f);
+								TEST_EQUAL_TOLERANCE_THROW(OutHits[0].Distance, SweepStart.Z - (FloorPlaneCollider->GetComponentLocation().Z + FloorPlaneCollider->GetScaledBoxExtent().Z) - CubeHalfZExtent, 0.1f);
+							}
+							catch (...) {}
+						});
 				});
 
 			Describe("UBoxComponent sweeps against runtime-welded UBoxComponents", [this]()
